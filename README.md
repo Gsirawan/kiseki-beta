@@ -46,6 +46,9 @@ go install -tags fts5 github.com/Gsirawan/kiseki-beta@latest
 
 # Pull an embedding model
 ollama pull qwen3-embedding:0.6b
+# Ships with a small model for accessibility — runs on modest hardware.
+# For better quality, swap to a larger model (e.g. qwen3-embedding:4b)
+# and update EMBED_MODEL and EMBED_DIM in your .env.
 
 # Done. Use it.
 kiseki ingest --file your-notes.md
@@ -332,6 +335,8 @@ go build -tags fts5 -o kiseki .
 ```
 
 **Requirements:** Go 1.23+, Ollama running with an embedding model, GCC (for SQLite CGo compilation).
+
+> **Note:** Windows is not currently supported due to CGo/SQLite dependencies. Linux and macOS are the supported platforms.
 
 ---
 
