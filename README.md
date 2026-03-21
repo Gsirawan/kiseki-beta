@@ -18,13 +18,13 @@ Your AI assistant forgets everything between sessions. Every conversation starts
 **Kiseki gives your AI persistent memory.** Ingest conversations, notes, and documents. Search them with a real retrieval pipeline. Your AI remembers what you built, what you decided, and why.
 
 ```
-You ──── write code, make decisions, solve problems ────►  Kiseki  ◄──── your AI searches memory
-              │                                              │                via MCP tool calls
-              │          ┌───────────────────────┐           │
-              └─────────►│  SQLite + FTS5 + vec  │◄──────────┘
-                         │  ~16K lines of Go     │
-                         │  Ollama embeddings     │
-                         └───────────────────────┘
+You write code, make decisions, solve problems ────►  Kiseki  ◄──── your AI searches memory via MCP tool calls
+               │                                            │  
+               │          ┌───────────────────────┐         │
+               └─────────►│  SQLite + FTS5 + vec  │◄────────┘
+                          │  ~16K lines of Go     │
+                          │  Ollama embeddings    │
+                          └───────────────────────┘
                               One file. Local.
 ```
 
@@ -76,22 +76,22 @@ Every search query passes through a real retrieval pipeline:
 ```
                           "auth module setup"
                                  │
-                    ┌────────────┴────────────┐
+                    ┌────────────┴─────────────┐
                     │    Entity Expansion      │
                     │  "auth module" matched   │
                     │   → "AuthModule" (alias) │
                     │   → "Authentication"     │
-                    └────────────┬────────────┘
+                    └────────────┬─────────────┘
                                  │
               ┌──────────────────┼──────────────────┐
-              │                  │                   │
-              ▼                  ▼                   ▼
-      ┌──────────────┐  ┌───────────────┐  ┌───────────────┐
-      │  FTS5 Layer  │  │  Vec Chunks   │  │ Vec Messages  │
-      │ (exact match)│  │  (semantic)   │  │  (semantic)   │
-      └──────┬───────┘  └───────┬───────┘  └───────┬───────┘
-              │                  │                   │
-              └──────────────────┼───────────────────┘
+              │                  │                  │
+              ▼                  ▼                  ▼
+       ┌──────────────┐  ┌───────────────┐  ┌───────────────┐
+       │  FTS5 Layer  │  │  Vec Chunks   │  │ Vec Messages  │
+       │ (exact match)│  │  (semantic)   │  │  (semantic)   │
+       └──────┬───────┘  └───────┬───────┘  └───────┬───────┘
+              │                  │                  │
+              └──────────────────┼──────────────────┘
                                  │
                     ┌────────────┴────────────┐
                     │   Merge + Deduplicate   │
@@ -297,7 +297,7 @@ When your primary AI (expensive model) needs memory, don't let raw chunks flood 
 
 ```
 Primary Model (Opus/GPT-4o)         Gist Subagent (Sonnet/Haiku)
-       │                                     │
+       │                                      │
        ├─ "search for auth discussion" ──────►│
        │                                      ├─ kiseki_search("auth module")
        │                                      ├─ kiseki_search("authentication")
