@@ -1,0 +1,22 @@
+{
+  "foundation_paths": [
+    "/path/to/your/foundation.md",
+    "/path/to/your/identity.md"
+  ],
+  "sister_mail_dir": "/path/to/your/mail/inbox",
+  "enabled": {
+    "foundation": true,
+    "sister_mail": true,
+    "session_briefing": true,
+    "time_context": true
+  },
+  "briefing": {
+    "agent": "your-scribe-agent",
+    "output_path": "/path/to/your/briefing-output.md"
+  },
+  "time": {
+    "timezone": "America/New_York",
+    "locale": "en-US"
+  },
+  "reminders_path": "~/reminders.md"
+}

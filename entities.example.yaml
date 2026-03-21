@@ -1,0 +1,18 @@
+entities:
+  - name: Alice
+    aliases: ["أليس", "A"]
+    description: "Example entity — team lead, project manager"
+    relationships:
+      - entity: Bob
+        type: colleague
+
+  - name: Bob
+    aliases: ["Robert", "B"]
+    description: "Example entity — software engineer"
+    relationships:
+      - entity: Alice
+        type: colleague
+
+  - name: "Project Alpha"
+    aliases: ["PA", "alpha"]
+    description: "Example project entity"

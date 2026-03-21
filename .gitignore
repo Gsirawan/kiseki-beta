@@ -1,0 +1,20 @@
+kiseki
+*.db
+*.db-shm
+*.db-wal
+.env
+.backup-secrets
+.backup-tier2-checksums
+.backup-tier3-checksums
+typos.txt
+
+# Private files — never commit to public repo
+entities.yaml
+watch-*.sh
+run-*.sh
+docs/regression-baseline.md
+docs/sessions/
+.hooks/
+.opencode/
+.backup-secrets.example
+scripts/backup-*.sh
