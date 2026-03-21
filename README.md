@@ -1,8 +1,6 @@
 <p align="center">
-  <strong>Kiseki</strong> (軌跡) — <em>trajectory, track, the path you've walked</em>
+  <img src="assets/hero-banner.png" alt="Kiseki — Persistent memory for AI agents" width="100%">
 </p>
-
-<h3 align="center">Personal memory for AI agents.<br/>One binary. One SQLite file. Zero cloud.</h3>
 
 <p align="center">
   <a href="https://github.com/Gsirawan/kiseki-beta/actions/workflows/ci.yml"><img src="https://github.com/Gsirawan/kiseki-beta/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
@@ -16,17 +14,6 @@
 Your AI assistant forgets everything between sessions. Every conversation starts from zero. Every decision re-explained. Every solution re-discovered.
 
 **Kiseki gives your AI persistent memory.** Ingest conversations, notes, and documents. Search them with a real retrieval pipeline. Your AI remembers what you built, what you decided, and why.
-
-```
-You write code, make decisions, solve problems ────►  Kiseki  ◄──── your AI searches memory via MCP tool calls
-               │                                            │  
-               │          ┌───────────────────────┐         │
-               └─────────►│  SQLite + FTS5 + vec  │◄────────┘
-                          │  ~16K lines of Go     │
-                          │  Ollama embeddings    │
-                          └───────────────────────┘
-                              One file. Local.
-```
 
 ---
 
@@ -65,6 +52,10 @@ kiseki ingest --file your-notes.md
 kiseki search "that auth fix from last week"
 ```
 
+<p align="center">
+  <img src="assets/demo-setup.png" alt="30-second setup" width="85%">
+</p>
+
 Or download a prebuilt binary from [Releases](https://github.com/Gsirawan/kiseki-beta/releases).
 
 ---
@@ -73,34 +64,9 @@ Or download a prebuilt binary from [Releases](https://github.com/Gsirawan/kiseki
 
 Every search query passes through a real retrieval pipeline:
 
-```
-                          "auth module setup"
-                                 │
-                    ┌────────────┴─────────────┐
-                    │    Entity Expansion      │
-                    │  "auth module" matched   │
-                    │   → "AuthModule" (alias) │
-                    │   → "Authentication"     │
-                    └────────────┬─────────────┘
-                                 │
-              ┌──────────────────┼──────────────────┐
-              │                  │                  │
-              ▼                  ▼                  ▼
-       ┌──────────────┐  ┌───────────────┐  ┌───────────────┐
-       │  FTS5 Layer  │  │  Vec Chunks   │  │ Vec Messages  │
-       │ (exact match)│  │  (semantic)   │  │  (semantic)   │
-       └──────┬───────┘  └───────┬───────┘  └───────┬───────┘
-              │                  │                  │
-              └──────────────────┼──────────────────┘
-                                 │
-                    ┌────────────┴────────────┐
-                    │   Merge + Deduplicate   │
-                    │   Tier-ranked results   │
-                    │                         │
-                    │  stones ► solutions     │
-                    │  ► key ► normal         │
-                    └─────────────────────────┘
-```
+<p align="center">
+  <img src="assets/architecture.png" alt="Kiseki Architecture" width="90%">
+</p>
 
 Three layers run **in parallel**, not sequentially. Results from all layers are merged, deduplicated, and ranked by importance tier. Chunks found by multiple layers rank higher.
 
@@ -112,15 +78,9 @@ Three layers run **in parallel**, not sequentially. Results from all layers are 
 
 Not a single vector lookup. Three search strategies running simultaneously.
 
-```bash
-$ kiseki search "database migration strategy"
-
-Entity matches: DB Migration → Database Migration, PG → PostgreSQL
-
-[Results ranked by layer overlap + importance tier]
-# Chunks found by FTS5 AND vector search rank above single-layer hits
-# Stones and solutions always surface first
-```
+<p align="center">
+  <img src="assets/demo-search.png" alt="Multi-layer search results" width="85%">
+</p>
 
 ### Live Session Capture
 
