@@ -145,7 +145,7 @@ Commands:
   batch-oc   Batch export OpenCode sessions to markdown + optional DB ingest
   batch-cc   Batch export Claude Code sessions to markdown + optional DB ingest
   re-embed   Re-embed all chunks and messages (for embedding model changes)
-  migrate    Migrate data from Nectar/nectar-hana DB into Kiseki schema
+  migrate    Migrate data from legacy DB into Kiseki schema
   help       Show this help message
 
 Examples:

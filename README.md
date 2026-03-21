@@ -155,7 +155,7 @@ Also supports: `KISEKI_MAIL_IDENTITY`, `KISEKI_MAIL_PEERS`, `KISEKI_MAIL_DIR`, `
 ## Build
 
 ```bash
-git clone https://github.com/Gsirawan/kiseki-beta.git && cd kiseki
+git clone https://github.com/Gsirawan/kiseki-beta.git && cd kiseki-beta
 go build -tags "fts5" -o kiseki .
 ```
 

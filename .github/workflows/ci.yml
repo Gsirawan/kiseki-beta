@@ -24,10 +24,10 @@ jobs:
           go mod verify
 
       - name: Vet
-        run: go vet ./...
+        run: go vet -tags "fts5" ./...
 
       - name: Test
-        run: go test -v -race ./...
+        run: go test -tags "fts5" -v -race ./...
 
       - name: Build
-        run: go build -o kiseki .
+        run: go build -tags "fts5" -o kiseki .

@@ -43,7 +43,7 @@ jobs:
           go mod verify
 
       - name: Run tests
-        run: go test ./...
+        run: go test -tags "fts5" ./...
 
       - name: Build binary
         env:
@@ -51,7 +51,7 @@ jobs:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
         run: |
-          go build -o ${{ matrix.artifact }} \
+          go build -tags "fts5" -o ${{ matrix.artifact }} \
             -ldflags="-s -w -X main.Version=${{ github.ref_name }} -X main.Commit=$(git rev-parse --short HEAD) -X main.Date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
             .
       - uses: actions/upload-artifact@v4
