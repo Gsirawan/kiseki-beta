@@ -160,7 +160,7 @@ Now your AI has `work_search` and `personal_search` as separate tools. Different
 
 ### Entity Graph
 
-Define entities with aliases. Search expands aliases automatically.
+Define entities with aliases. Search expands aliases automatically — query for any alias and Kiseki finds all chunks matching the canonical name.
 
 ```yaml
 # entities.yaml
@@ -170,10 +170,9 @@ entities:
 
   - name: "Project Alpha"
     aliases: [PA, alpha]
-    description: "The main client project"
-    relationships:
-      - entity: React
-        type: uses
+
+  - name: PostgreSQL
+    aliases: [postgres, pg]
 ```
 
 ```bash
