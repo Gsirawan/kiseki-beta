@@ -10,7 +10,7 @@ When your AI calls `kiseki_search` directly, the raw memory chunks land in its c
 
 **Gist is a token shield.**
 
-Instead of your primary model (e.g., Claude Opus, GPT-4o) doing the memory retrieval itself, you spawn a Gist subagent running on a cheaper model (e.g., Claude Sonnet, Haiku). Gist:
+Instead of your primary model (e.g., Claude Opus, GPT-4.1) doing the memory retrieval itself, you spawn a Gist subagent running on a cheaper model (e.g., Claude Haiku, GPT-4.1-mini). Gist:
 
 1. Runs all the `kiseki_search` and `kiseki_history` calls
 2. Reads the raw chunks (in its cheaper context)
@@ -19,19 +19,19 @@ Instead of your primary model (e.g., Claude Opus, GPT-4o) doing the memory retri
 Your primary model receives the summary — not the raw chunks. The expensive tokens stay clean.
 
 ```
-Primary Model (Opus)
+Primary Model (Opus / GPT-4.1)
     │
     ├── "Search Kiseki for the auth module discussion"
     │
     ▼
-Gist Subagent (Sonnet)          ← raw chunks land here
+Gist Subagent (Haiku / GPT-4.1-mini)          ← raw chunks land here
     ├── kiseki_search("auth module")
     ├── kiseki_search("authentication flow")
     ├── kiseki_search("JWT login")
     └── returns structured summary
     │
     ▼
-Primary Model (Opus)            ← receives clean summary only
+Primary Model (Opus / GPT-4.1)  ← receives clean summary only
     └── continues with synthesized context
 ```
 
@@ -45,7 +45,7 @@ Primary Model (Opus)            ← receives clean summary only
 | Primary model calls Gist subagent | Low — raw chunks in cheap context | Same |
 
 **When Gist pays off:**
-- You're using an expensive primary model (Opus, GPT-4o, etc.)
+- You're using an expensive primary model (Claude Opus, GPT-4.1, etc.)
 - Memory searches are frequent (multiple per session)
 - Topics may require several search queries to cover fully
 - You want to preserve primary model context for actual reasoning

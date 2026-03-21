@@ -258,7 +258,7 @@ KISEKI_MAIL_DIR=/shared/mail
 When your primary AI (expensive model) needs memory, don't let raw chunks flood its context. Spawn a Gist subagent on a cheaper model instead.
 
 ```
-Primary Model (Opus/GPT-4o)         Gist Subagent (Sonnet/Haiku)
+Primary Model (Opus/GPT-4.1)        Gist Subagent (Haiku/GPT-4.1-mini)
        │                                      │
        ├─ "search for auth discussion" ──────►│
        │                                      ├─ kiseki_search("auth module")
