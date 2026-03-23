@@ -18,8 +18,50 @@ import (
 
 var EmbedDimension = 1024
 
+// dbEncryptionKey holds the encryption key loaded from KISEKI_DB_KEY.
+// Empty string means plaintext mode (no encryption).
+var dbEncryptionKey string
+
 func init() {
 	sqlite_vec.Auto()
+}
+
+// LoadEncryptionKey reads KISEKI_DB_KEY from the environment.
+// Must be called after godotenv.Load() in main.
+func LoadEncryptionKey() {
+	dbEncryptionKey = os.Getenv("KISEKI_DB_KEY")
+}
+
+// IsEncryptionEnabled returns true if an encryption key is configured.
+func IsEncryptionEnabled() bool {
+	return dbEncryptionKey != ""
+}
+
+// applyEncryptionKey issues PRAGMA key on the connection if an encryption key is set.
+// This MUST be the very first statement after sql.Open(), before any other PRAGMA or query.
+// Returns nil if no key is configured (plaintext mode).
+func applyEncryptionKey(db *sql.DB) error {
+	if dbEncryptionKey == "" {
+		return nil
+	}
+
+	// PRAGMA key must be the first statement on an encrypted database.
+	// SQLCipher requires this before any other operation.
+	// Note: PRAGMA does not support parameter binding — the key must be a string literal.
+	// The key comes from a trusted environment variable, not user input.
+	pragmaSQL := fmt.Sprintf("PRAGMA key = '%s'", strings.ReplaceAll(dbEncryptionKey, "'", "''"))
+	if _, err := db.Exec(pragmaSQL); err != nil {
+		return fmt.Errorf("encryption: wrong key or database is not encrypted: %w", err)
+	}
+
+	// Validate the key by reading sqlite_master.
+	// If the key is wrong, this will fail with "file is not a database".
+	var count int
+	if err := db.QueryRow("SELECT count(*) FROM sqlite_master").Scan(&count); err != nil {
+		return fmt.Errorf("encryption: wrong key or database is not encrypted: %w", err)
+	}
+
+	return nil
 }
 
 func LoadEmbedDimension() {
@@ -150,6 +192,13 @@ func InitDB(dbPath string) (*sql.DB, error) {
 		return nil, err
 	}
 
+	// Encryption key MUST be the first statement after open (SQLCipher requirement).
+	// If KISEKI_DB_KEY is not set, this is a no-op (plaintext mode).
+	if err := applyEncryptionKey(db); err != nil {
+		_ = db.Close()
+		return nil, err
+	}
+
 	if _, err := db.Exec("PRAGMA journal_mode=WAL"); err != nil {
 		_ = db.Close()
 		return nil, err
@@ -195,6 +244,12 @@ func InitDB(dbPath string) (*sql.DB, error) {
 func InitDBForReEmbed(dbPath string) (*sql.DB, error) {
 	db, err := sql.Open("sqlite3", dbPath)
 	if err != nil {
+		return nil, err
+	}
+
+	// Encryption key MUST be the first statement after open (SQLCipher requirement).
+	if err := applyEncryptionKey(db); err != nil {
+		_ = db.Close()
 		return nil, err
 	}
 

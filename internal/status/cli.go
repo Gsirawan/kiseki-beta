@@ -56,6 +56,7 @@ func RunStatusCLI(args []string, kisekiDB, ollamaHost, embedModel string, build 
 			"embed_dim_configured": st.ConfiguredEmbedDim,
 			"chunk_count":          st.TotalChunks,
 			"thought_count":        st.TotalThoughts,
+			"encrypted":            st.Encrypted,
 			"date_range": jsonDateRange{
 				Earliest: st.EarliestValidAt,
 				Latest:   st.LatestValidAt,
@@ -83,6 +84,11 @@ func RunStatusCLI(args []string, kisekiDB, ollamaHost, embedModel string, build 
 	fmt.Printf("Chunks:      %d\n", st.TotalChunks)
 	fmt.Printf("Thoughts:    %d\n", st.TotalThoughts)
 	fmt.Printf("Schema:      v%d\n", st.SchemaVersion)
+	if st.Encrypted {
+		fmt.Printf("Encryption:  enabled (AES-256, SQLCipher)\n")
+	} else {
+		fmt.Printf("Encryption:  off\n")
+	}
 	if st.StoredEmbedDim > 0 {
 		dimStatus := "ok"
 		if st.StoredEmbedDim != st.ConfiguredEmbedDim {
