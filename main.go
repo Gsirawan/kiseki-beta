@@ -33,6 +33,7 @@ func main() {
 		_ = godotenv.Load(filepath.Join(home, ".config", "kiseki", ".env"))
 	}
 	db.LoadEmbedDimension()
+	db.LoadEncryptionKey()
 	history.LoadAliasesFromEnv()
 
 	ollamaHost := getEnvOrDefault("OLLAMA_HOST", "localhost:11434")
@@ -101,6 +102,8 @@ func main() {
 		db.RunReEmbedCLI(os.Args[2:], kisekiDB, "http://"+ollamaHost, embedModel)
 	case "migrate":
 		db.RunMigrateCLI(os.Args[2:], kisekiDB)
+	case "encrypt":
+		db.RunEncryptCLI(os.Args[2:], kisekiDB)
 	case "version", "-v", "--version":
 		fmt.Printf("kiseki v%s (commit: %s, built: %s)\n", Version, Commit, Date)
 		os.Exit(0)
@@ -146,6 +149,7 @@ Commands:
   batch-cc   Batch export Claude Code sessions to markdown + optional DB ingest
   re-embed   Re-embed all chunks and messages (for embedding model changes)
   migrate    Migrate data from legacy DB into Kiseki schema
+  encrypt    Encrypt an existing plaintext database (requires KISEKI_DB_KEY)
   help       Show this help message
 
 Examples:
@@ -174,6 +178,8 @@ Examples:
   kiseki re-embed --dry-run
   kiseki re-embed --workers=4
   kiseki re-embed --force
+  kiseki encrypt --dry-run
+  kiseki encrypt --confirm
   kiseki batch-oc --out ./exports
   kiseki batch-cc --out ./exports --project myproject
   kiseki migrate --source nectar.db --dry-run

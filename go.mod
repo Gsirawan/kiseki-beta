@@ -30,3 +30,5 @@ require (
 	golang.org/x/oauth2 v0.30.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
 )
+
+replace github.com/mattn/go-sqlite3 => ./patches/go-sqlite3

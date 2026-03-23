@@ -19,6 +19,7 @@ type StatusInfo struct {
 	SchemaVersion      int
 	StoredEmbedDim     int
 	ConfiguredEmbedDim int
+	Encrypted          bool
 }
 
 // Status gathers system status information.
@@ -39,6 +40,9 @@ func Status(database *sql.DB, ollamaClient *ollama.OllamaClient, embedModel stri
 	// Embed dimension info
 	info.StoredEmbedDim = db.StoredEmbedDim(database)
 	info.ConfiguredEmbedDim = db.EmbedDimension
+
+	// Encryption status
+	info.Encrypted = db.IsEncryptionEnabled()
 
 	// Get sqlite-vec version
 	var vecVersion string

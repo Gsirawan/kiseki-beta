@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -18,8 +19,52 @@ import (
 
 var EmbedDimension = 1024
 
+// dbEncryptionKey holds the encryption key loaded from KISEKI_DB_KEY.
+// Empty string means plaintext mode (no encryption).
+var dbEncryptionKey string
+
 func init() {
 	sqlite_vec.Auto()
+}
+
+// LoadEncryptionKey reads KISEKI_DB_KEY from the environment.
+// Must be called after godotenv.Load() in main.
+func LoadEncryptionKey() {
+	dbEncryptionKey = os.Getenv("KISEKI_DB_KEY")
+}
+
+// IsEncryptionEnabled returns true if an encryption key is configured.
+func IsEncryptionEnabled() bool {
+	return dbEncryptionKey != ""
+}
+
+// dbDSN builds the DSN string for sql.Open, embedding the encryption key
+// as a _key query parameter so the driver applies PRAGMA key before any
+// other statement (SQLCipher requirement).
+// If no encryption key is configured, returns the plain path.
+func dbDSN(dbPath string) string {
+	if dbEncryptionKey == "" {
+		return dbPath
+	}
+	return fmt.Sprintf("file:%s?_key=%s", dbPath, url.QueryEscape(dbEncryptionKey))
+}
+
+// validateEncryptionKey checks that the database can be read with the
+// configured encryption key by querying sqlite_master.
+// Returns nil if no key is configured (plaintext mode).
+func validateEncryptionKey(db *sql.DB) error {
+	if dbEncryptionKey == "" {
+		return nil
+	}
+
+	// Validate the key by reading sqlite_master.
+	// If the key is wrong, this will fail with "file is not a database".
+	var count int
+	if err := db.QueryRow("SELECT count(*) FROM sqlite_master").Scan(&count); err != nil {
+		return fmt.Errorf("encryption: wrong key or database is not encrypted: %w", err)
+	}
+
+	return nil
 }
 
 func LoadEmbedDimension() {
@@ -145,8 +190,17 @@ func ValidateEmbedDimension(embedder ollama.Embedder) error {
 }
 
 func InitDB(dbPath string) (*sql.DB, error) {
-	db, err := sql.Open("sqlite3", dbPath)
+	// Pass encryption key via DSN so the driver applies PRAGMA key
+	// before any other PRAGMA (SQLCipher requirement).
+	// Every connection in the pool gets the key automatically.
+	db, err := sql.Open("sqlite3", dbDSN(dbPath))
 	if err != nil {
+		return nil, err
+	}
+
+	// Validate the key actually works (catches wrong-key errors early).
+	if err := validateEncryptionKey(db); err != nil {
+		_ = db.Close()
 		return nil, err
 	}
 
@@ -193,8 +247,16 @@ func InitDB(dbPath string) (*sql.DB, error) {
 // InitDBForReEmbed opens and initializes the database WITHOUT embed dimension validation.
 // Used by the re-embed command which needs to open DBs with mismatched dimensions.
 func InitDBForReEmbed(dbPath string) (*sql.DB, error) {
-	db, err := sql.Open("sqlite3", dbPath)
+	// Pass encryption key via DSN so the driver applies PRAGMA key
+	// before any other PRAGMA (SQLCipher requirement).
+	db, err := sql.Open("sqlite3", dbDSN(dbPath))
 	if err != nil {
+		return nil, err
+	}
+
+	// Validate the key actually works.
+	if err := validateEncryptionKey(db); err != nil {
+		_ = db.Close()
 		return nil, err
 	}
 
