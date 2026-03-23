@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -37,21 +38,23 @@ func IsEncryptionEnabled() bool {
 	return dbEncryptionKey != ""
 }
 
-// applyEncryptionKey issues PRAGMA key on the connection if an encryption key is set.
-// This MUST be the very first statement after sql.Open(), before any other PRAGMA or query.
+// dbDSN builds the DSN string for sql.Open, embedding the encryption key
+// as a _key query parameter so the driver applies PRAGMA key before any
+// other statement (SQLCipher requirement).
+// If no encryption key is configured, returns the plain path.
+func dbDSN(dbPath string) string {
+	if dbEncryptionKey == "" {
+		return dbPath
+	}
+	return fmt.Sprintf("file:%s?_key=%s", dbPath, url.QueryEscape(dbEncryptionKey))
+}
+
+// validateEncryptionKey checks that the database can be read with the
+// configured encryption key by querying sqlite_master.
 // Returns nil if no key is configured (plaintext mode).
-func applyEncryptionKey(db *sql.DB) error {
+func validateEncryptionKey(db *sql.DB) error {
 	if dbEncryptionKey == "" {
 		return nil
-	}
-
-	// PRAGMA key must be the first statement on an encrypted database.
-	// SQLCipher requires this before any other operation.
-	// Note: PRAGMA does not support parameter binding — the key must be a string literal.
-	// The key comes from a trusted environment variable, not user input.
-	pragmaSQL := fmt.Sprintf("PRAGMA key = '%s'", strings.ReplaceAll(dbEncryptionKey, "'", "''"))
-	if _, err := db.Exec(pragmaSQL); err != nil {
-		return fmt.Errorf("encryption: wrong key or database is not encrypted: %w", err)
 	}
 
 	// Validate the key by reading sqlite_master.
@@ -187,14 +190,16 @@ func ValidateEmbedDimension(embedder ollama.Embedder) error {
 }
 
 func InitDB(dbPath string) (*sql.DB, error) {
-	db, err := sql.Open("sqlite3", dbPath)
+	// Pass encryption key via DSN so the driver applies PRAGMA key
+	// before any other PRAGMA (SQLCipher requirement).
+	// Every connection in the pool gets the key automatically.
+	db, err := sql.Open("sqlite3", dbDSN(dbPath))
 	if err != nil {
 		return nil, err
 	}
 
-	// Encryption key MUST be the first statement after open (SQLCipher requirement).
-	// If KISEKI_DB_KEY is not set, this is a no-op (plaintext mode).
-	if err := applyEncryptionKey(db); err != nil {
+	// Validate the key actually works (catches wrong-key errors early).
+	if err := validateEncryptionKey(db); err != nil {
 		_ = db.Close()
 		return nil, err
 	}
@@ -242,13 +247,15 @@ func InitDB(dbPath string) (*sql.DB, error) {
 // InitDBForReEmbed opens and initializes the database WITHOUT embed dimension validation.
 // Used by the re-embed command which needs to open DBs with mismatched dimensions.
 func InitDBForReEmbed(dbPath string) (*sql.DB, error) {
-	db, err := sql.Open("sqlite3", dbPath)
+	// Pass encryption key via DSN so the driver applies PRAGMA key
+	// before any other PRAGMA (SQLCipher requirement).
+	db, err := sql.Open("sqlite3", dbDSN(dbPath))
 	if err != nil {
 		return nil, err
 	}
 
-	// Encryption key MUST be the first statement after open (SQLCipher requirement).
-	if err := applyEncryptionKey(db); err != nil {
+	// Validate the key actually works.
+	if err := validateEncryptionKey(db); err != nil {
 		_ = db.Close()
 		return nil, err
 	}
