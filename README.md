@@ -339,7 +339,9 @@ go build -tags fts5 -o kiseki .
 
 ---
 
-## OpenCode Plugin
+## Integrations
+
+### OpenCode Plugin
 
 Kiseki ships with a [plugin for OpenCode](plugins/opencode/) that adds:
 
@@ -350,6 +352,12 @@ Kiseki ships with a [plugin for OpenCode](plugins/opencode/) that adds:
 - **Cross-agent mail notifications** -- toast + system prompt nudge for unread messages
 
 See [plugins/opencode/README.md](plugins/opencode/README.md) for setup.
+
+### OpenClaw via kiseki-claw
+
+[kiseki-claw](https://github.com/Gsirawan/kiseki-claw) brings persistent cross-session memory to [OpenClaw](https://github.com/openclaw/openclaw) agents. MCP-only integration exposing 7 of 18 tools. Agents search, record decisions, and track entities across sessions without losing context after compaction.
+
+See [kiseki-claw README](https://github.com/Gsirawan/kiseki-claw) for setup.
 
 ---
 
